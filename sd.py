@@ -65,6 +65,3 @@ def main():
         except pd.errors.ParserError:
             st.error("Error: Invalid CSV file format. Please ensure it's a valid CSV file.")
 
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt  # Import plt inside main for clarity
-    main()
