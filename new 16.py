@@ -1,78 +1,70 @@
-# Importing necessary libraries
-import pandas as pd
 import streamlit as st
-import matplotlib.pyplot as plt
-import seaborn as sns
+import pandas as pd
+import numpy as np  # Added for calculating standard deviation
 
-# Function to read CSV file and return DataFrame
-def read_csv_file(file_name):
-    """
-    Reads a CSV file and returns a pandas DataFrame.
+def analyze_student_grades(df):
+    """Analyzes student grades from a DataFrame.
 
-    Parameters:
-    file_name (str): The name of the CSV file.
+    Args:
+        df (pandas.DataFrame): The DataFrame containing student data.
 
     Returns:
-    DataFrame: A DataFrame containing the student data.
+        None: Prints the analysis results to the Streamlit app.
     """
-    df = pd.read_csv(file_name)
-    return df
 
-# Function to analyze student grades
-def analyze_grades(df):
-    """
-    Performs basic analysis on student grades.
+    # Descriptive statistics
+    st.header("Descriptive Statistics")
+    st.write(df.describe(include='all'))  # Include all data types
 
-    Parameters:
-    df (DataFrame): A DataFrame containing the student data.
+    # Number of students
+    num_students = df.shape[0]
+    st.write(f"Number of Students: {num_students}")
 
-    Returns:
-    None
-    """
-    # Calculate the minimum, maximum, and average grades
-    min_grade = df["Grade"].min()
-    max_grade = df["Grade"].max()
-    avg_grade = df["Grade"].mean()
-
-    # Display the analysis results
-    st.write("Grade Analysis:")
-    st.write(f"Minimum Grade: {min_grade}")
-    st.write(f"Maximum Grade: {max_grade}")
+    # Average grade
+    avg_grade = df['Grade'].mean()
     st.write(f"Average Grade: {avg_grade:.2f}")
 
-    # Plot a histogram of grades
+    # Standard deviation of grades (using numpy)
+    std_dev = np.std(df['Grade'])
+    st.write(f"Standard Deviation: {std_dev:.2f}")
+
+    # Highest and lowest grades
+    highest_grade = df['Grade'].max()
+    lowest_grade = df['Grade'].min()
+    st.write(f"Highest Grade: {highest_grade:.2f}")
+    st.write(f"Lowest Grade: {lowest_grade:.2f}")
+
+    # Distribution of grades (histogram)
+    st.header("Distribution of Grades")
     fig, ax = plt.subplots()
-    sns.histplot(df["Grade"], kde=True, ax=ax)
-    ax.set_title("Grade Distribution")
-    ax.set_xlabel("Grade")
-    ax.set_ylabel("Frequency")
+    ax.hist(df['Grade'], bins=10, edgecolor='black')  # Adjust bins as needed
+    ax.set_xlabel('Grade')
+    ax.set_ylabel('Number of Students')
+    ax.set_title('Distribution of Student Grades')
     st.pyplot(fig)
 
-    # Plot a boxplot of grades
-    fig, ax = plt.subplots()
-    sns.boxplot(df["Grade"], ax=ax)
-    ax.set_title("Grade Boxplot")
-    ax.set_ylabel("Grade")
-    st.pyplot(fig)
-
-# Main function
 def main():
-    # Create a Streamlit title and header
+    """The main function that runs the Streamlit app."""
+
     st.title("Student Grade Analyzer")
-    st.header("Upload a CSV file containing student data")
+    uploaded_file = st.file_uploader("Upload CSV File", type='csv')
 
-    # Create a file uploader
-    file_uploader = st.file_uploader("Select a CSV file", type=["csv"])
+    if uploaded_file is not None:
+        try:
+            df = pd.read_csv(uploaded_file)
+            # Basic validation (assuming 'Grade' is the column name)
+            if 'Grade' not in df.columns:
+                st.error("Error: The uploaded CSV file must contain a column named 'Grade'.")
+            else:
+                # Ensure 'Grade' column has numeric values
+                try:
+                    df['Grade'] = pd.to_numeric(df['Grade'])
+                    analyze_student_grades(df.copy())  # Avoid modifying original DataFrame
+                except ValueError:
+                    st.error("Error: The 'Grade' column must contain valid numeric values.")
+        except pd.errors.ParserError:
+            st.error("Error: Invalid CSV file format. Please ensure it's a valid CSV file.")
 
-    # Read the uploaded CSV file
-    if file_uploader is not None:
-        df = read_csv_file(file_uploader)
-        st.write("Student Data:")
-        st.write(df)
-
-        # Analyze grades
-        analyze_grades(df)
-
-# Call the main function
 if __name__ == "__main__":
+    import matplotlib.pyplot as plt  # Import plt inside main for clarity
     main()
