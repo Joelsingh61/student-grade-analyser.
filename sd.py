@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import numpy as np  # Added for calculating standard deviation
+import matplotlib.pyplot as plt
 
 def analyze_student_grades(df):
     """Analyzes student grades from a DataFrame.
